@@ -17,6 +17,7 @@ func main() {
 	fmt.Printf("starting usertwist on port: %s\n", port)
 
 	http.HandleFunc("/", handlers.Banner())
+	http.HandleFunc("/login", handlers.Login)
 
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
