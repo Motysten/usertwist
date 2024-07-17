@@ -1,45 +1,44 @@
 package handlers
 
 import (
+	"athelas/usertwist/internal/models"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
-type User struct {
-	Login    string `json:"login"`
-	Password string `json:"password"`
-	Token    string `json:"token"`
-}
-
-// Liste des utilisateurs autorisés
-var AuthorizedUsers = []User{
-	{Login: "user1", Password: "password1", Token: "8Mb19OuQAJ"},
-	{Login: "user2", Password: "password2", Token: "1wVtw244Sg"},
-	{Login: "toto", Password: "tata", Token: "d7P47HXfFM"},
-	{Login: "login", Password: "password", Token: "KlMnOpQrSt"},
-}
-
-func Login(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "Not Allowed", http.StatusMethodNotAllowed)
+func Login(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodPost {
+		http.Error(writer, "Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var netUser User
-	err := json.NewDecoder(r.Body).Decode(&netUser)
+	var parsedBody LoginRequest
+	err := json.NewDecoder(request.Body).Decode(&parsedBody)
 	if err != nil {
-		http.Error(w, "Bad raquette", http.StatusBadRequest)
+		http.Error(writer, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
-	for _, u := range AuthorizedUsers {
-		if u.Login == netUser.Login && u.Password == netUser.Password {
-			w.WriteHeader(http.StatusOK)
-			_, _ = fmt.Fprintf(w, "Login Accepted here is the token : %v", u.Token)
-			return
-		}
+	token, err := models.AuthorizedUsers.GetToken(parsedBody.Username, parsedBody.Password)
+	if err != nil {
+		http.Error(writer, "Login or password incorrect", http.StatusUnauthorized)
+		return
 	}
 
-	http.Error(w, "Login or password incorrect", http.StatusUnauthorized)
+	writer.Header().Set("Content-Type", "application/json")
+
+	_ = json.NewEncoder(writer).Encode(LoginResponse{
+		Username: parsedBody.Username,
+		Token:    token,
+	})
+}
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	Username string `json:"username"`
+	Token    string `json:"token"`
 }
