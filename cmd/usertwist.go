@@ -18,6 +18,7 @@ func main() {
 
 	http.HandleFunc("/", handlers.Banner)
 	http.HandleFunc("/login", handlers.Login)
+	http.HandleFunc("/references", handlers.References)
 
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
