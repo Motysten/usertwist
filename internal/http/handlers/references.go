@@ -28,7 +28,7 @@ func References(writer http.ResponseWriter, request *http.Request) {
 	var parsedBody ReferencesRequest
 	err = json.NewDecoder(request.Body).Decode(&parsedBody)
 	if err != nil {
-		http.Error(writer, "Bad Request", http.StatusBadRequest)
+		http.Error(writer, "Bad Request, entity and term keys required", http.StatusBadRequest)
 		return
 	}
 
